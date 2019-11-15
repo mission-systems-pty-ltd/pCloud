@@ -1,0 +1,10 @@
+///////////////////////////////////////////////
+ProcessConfig = pCloud
+{
+    BODY_FRAME = False
+    MAX_CLOUDS = 1
+    FOV_DEG    = 50
+    POINT_SIZE = 1
+    MODE       = RGBA_POINTS
+}
+

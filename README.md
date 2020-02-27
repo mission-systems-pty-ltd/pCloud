@@ -1,3 +1,2 @@
-# pCloud
+MOOSApp for real-time lidar point cloud visualisation
 
-MOOS application for real-time lidar point cloud visualisation.

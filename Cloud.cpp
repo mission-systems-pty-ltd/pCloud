@@ -25,7 +25,7 @@ Cloud::Cloud(){
 
 	m_mode = RGBA_POINTS; // set to most basic (overridden by .moos file)
 	m_max_clouds = 100;
-	m_body_frame = false;
+	m_lidar_frame = false;
 	m_point_size = 1;
 
 	// Camera params
@@ -78,10 +78,8 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 
 			size_t numBytes  = msg.GetBinaryDataSize();
 			size_t numFloats = numBytes/sizeof(float);
-			// size_t numPoints = numBytes/sizeof(RGBA_point);
 
 			// Actual size of message on the wire
-			// != sizeof(pcl::PointXYZRGBA)
 			size_t numPoints = numFloats/4; 
 
 			// This cloud object should get garbage collected...
@@ -94,9 +92,6 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 
             // Start timer
 			double startTime = MOOSLocalTime();
-
-			// Create buffer for point data
-			// RGBA_point * point_ptr = reinterpret_cast<RGBA_point *>(msg.GetBinaryData());
 
 			// Pointer to float message data
 			float *ptr = reinterpret_cast<float *>(msg.GetBinaryData());
@@ -113,7 +108,7 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 
             switch (m_mode) {
 
-				case WHITE_POINTS:
+				case WHITE_POINTS: // MODE 0
 					{
 						for (size_t i = 0; i < numPoints; ++i) {
 
@@ -126,7 +121,7 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 						
 					break;
 
-				case GREY_LEVEL_INTENSITY:
+				case GREY_LEVEL_INTENSITY: // MODE 1
 					{
 						for (size_t i = 0; i < numPoints; ++i) {
 
@@ -142,7 +137,7 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 
 					break;							
 
-				case COLOUR_CODED_ALTITUDE:
+				case COLOUR_CODED_ALTITUDE: // MODE 2
 					{
 						// Get cloud ensemble bounds
 						auto low  = min_element(begin(m_minZ),end(m_minZ));
@@ -179,7 +174,7 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 
 		            break;
 				
-				case INTENSITY_SHADED_ALTITUDE:
+				case INTENSITY_SHADED_ALTITUDE: // MODE 3
 					{
 						// Get cloud ensemble altitude bounds
 						auto low  = min_element(begin(m_minZ),end(m_minZ));
@@ -221,7 +216,7 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 
 				    break;
 
-				case RGBA_POINTS:
+				case RGBA_POINTS: // MODE 4
 					{
 						// We're already done!
 					}
@@ -306,12 +301,20 @@ bool Cloud::OnNewMail(MOOSMSG_LIST &NewMail)
 				m_focus_z = m_pos_z + 100.f * view_z;
 
 				m_camera_update = true;
+
 			} catch (...) {
 
 				cout << "Warning: invalid camera data!" << endl;
 
 				m_camera_update = false;
 			}
+
+	    else if (strEnds(key, "TRIGGER")){
+
+	    	// These messages are important for body frame data
+	    	// They need to be associated with specific clouds...
+	    	// trigger(optix_scene, sval);
+	    }
 	}
 
 	return true;
@@ -394,8 +397,8 @@ bool Cloud::OnStartUp()
 			else if (param == "BODY_FRAME") {
 
 				// TO DO: Handle incoming data in body-frame
-				cout << "BODY_FRAME = " << bval << endl;
-				m_body_frame = bval;
+				cout << "LIDAR_FRAME = " << bval << endl;
+				m_lidar_frame = bval;
 			}
 			else if (param == "MODE") {
 				try {
@@ -469,6 +472,9 @@ void Cloud::RegisterVariables()
 {
   	// Register for all Lidar data  
   	Register("*_DATA", "pLidarSim", 0);
+
+  	// Register for all Lidar triggers
+  	Register("*_TRIGGER", "pLidarSim", 0);
 
 	// Point cloud view position and vector 
 	Register("LIDAR_VIEW", 0);

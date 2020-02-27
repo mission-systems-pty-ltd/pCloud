@@ -38,7 +38,7 @@ class Cloud : public CMOOSApp
    int m_point_size;
    int m_max_clouds;
    float m_altitude;
-   bool m_body_frame;
+   bool m_lidar_frame;
    Modes m_mode;
 
    // Camera parameters

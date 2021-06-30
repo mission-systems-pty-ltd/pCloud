@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+project(pCloud)
 
 SET(EXEC_NAME pCloud)
 
